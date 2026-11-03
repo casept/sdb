@@ -4,6 +4,8 @@
 
 HOST_OS := $(shell uname -s | tr A-Z a-z)
 
+MODULE ?= sdb
+
 # sdb host tool
 # =========================================================
 
@@ -111,11 +113,11 @@ all : $(MODULE)
 
 sdb : $(SDB_SRC_FILES)
 	mkdir -p $(OBJDIR)
-	$(CC) -pthread -o $(OBJDIR)/$(MODULE) $(SDB_CFLAGS) $(SDB_LFLAGS) $(IFLAGS) $(SDB_SRC_FILES)
+	$(CC) -pthread -o $(OBJDIR)/$@ $(SDB_CFLAGS) $(SDB_LFLAGS) $(IFLAGS) $(SDB_SRC_FILES)
 
 sdbd : $(SDBD_SRC_FILES)
 	mkdir -p $(OBJDIR)
-	$(CC) -pthread -o $(OBJDIR)/$(MODULE) $(SDBD_CFLAGS) $(IFLAGS) $(SDBD_SRC_FILES)
+	$(CC) -pthread -o $(OBJDIR)/$@ $(SDBD_CFLAGS) $(IFLAGS) $(SDBD_SRC_FILES)
 
 install :
 	mkdir -p $(DESTDIR)/$(INSTALLDIR)
