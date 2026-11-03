@@ -27,6 +27,11 @@
 #define A_OKAY 0x59414b4f
 #define A_CLSE 0x45534c43
 #define A_WRTE 0x45545257
+#define A_AUTH 0x48545541
+
+#define AUTH_TOKEN 1
+#define AUTH_SIGNATURE 2
+#define AUTH_RSAPUBLICKEY 3
 
 #define A_VERSION 0x01000000        // SDB protocol version
 
@@ -174,6 +179,7 @@ struct atransport
     int ref_count;
     unsigned sync_token;
     int connection_state;
+    int auth_tokens_seen;
     transport_type type;
 
         /* usb handle or socket fd as needed */
@@ -237,6 +243,13 @@ void fatal_errno(const char *fmt, ...);
 
 void handle_packet(apacket *p, atransport *t);
 void send_packet(apacket *p, atransport *t);
+
+#if SDB_HOST
+/* sdb_auth.c: host RSA key handling for device authentication */
+int sdb_auth_public_key(char *out, size_t outlen);
+int sdb_auth_sign(const unsigned char *token, size_t tlen,
+                  unsigned char *sig, size_t *siglen);
+#endif
 
 void get_my_path(char *s, size_t maxLen);
 int launch_server(int server_port);

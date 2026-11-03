@@ -307,6 +307,39 @@ void parse_banner(char *banner, atransport *t)
     t->connection_state = CS_HOST;
 }
 
+#if SDB_HOST
+/* Answers a device AUTH token: the first token is signed with our key;
+ * if the device rejects that, it sends a new token and we send our public
+ * key so the device can ask the user to confirm it. */
+static void send_auth_response(apacket *p, atransport *t)
+{
+    apacket *cp = get_apacket();
+
+    if (p->msg.arg0 != AUTH_TOKEN) return;
+
+    cp->msg.command = A_AUTH;
+    if (t->auth_tokens_seen++ == 0) {
+        size_t siglen = sizeof(cp->data);
+        if (!sdb_auth_sign(p->data, p->msg.data_length, cp->data, &siglen)) {
+            fprintf(stderr, "error: could not sign device auth token\n");
+            free(cp);
+            return;
+        }
+        cp->msg.arg0 = AUTH_SIGNATURE;
+        cp->msg.data_length = siglen;
+    } else {
+        if (!sdb_auth_public_key((char *)cp->data, sizeof(cp->data))) {
+            fprintf(stderr, "error: could not load sdb host key from ~/.sdb/sdb_key\n");
+            free(cp);
+            return;
+        }
+        cp->msg.arg0 = AUTH_RSAPUBLICKEY;
+        cp->msg.data_length = strlen((char *)cp->data) + 1;
+    }
+    send_packet(cp, t);
+}
+#endif
+
 void handle_packet(apacket *p, atransport *t)
 {
     asocket *s;
@@ -316,6 +349,11 @@ void handle_packet(apacket *p, atransport *t)
     print_packet("recv", p);
 
     switch(p->msg.command){
+#if SDB_HOST
+    case A_AUTH:
+        send_auth_response(p, t);
+        return;
+#endif
     case A_SYNC:
         if(p->msg.arg0){
             send_packet(p, t);

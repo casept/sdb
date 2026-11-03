@@ -35,6 +35,7 @@ endif
 
 SDB_SRC_FILES := \
 	src/sdb.c \
+	src/sdb_auth.c \
 	src/console.c \
 	src/transport.c \
 	src/transport_local.c \
@@ -60,7 +61,7 @@ SDB_CFLAGS := -O2 -g -DSDB_HOST=1  -Wall -Wno-unused-parameter
 SDB_CFLAGS += -D_XOPEN_SOURCE -D_GNU_SOURCE
 SDB_CFLAGS += -DHAVE_FORKEXEC -DHAVE_TERMIO_H -DHAVE_SYMLINKS
 SDB_CFLAGS += -fcommon -Wl,--allow-multiple-definition
-SDB_LFLAGS := -Wl,--allow-multiple-definition $(LOCAL_LDLIBS)
+SDB_LFLAGS := -Wl,--allow-multiple-definition $(LOCAL_LDLIBS) -lcrypto
 
 SDBD_SRC_FILES := \
 	src/sdb.c \
